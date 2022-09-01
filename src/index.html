@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Configs</title>
+    <link rel="icon" href="./resources/memo.png">
+    <!-- Javascript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <script src="./resources/global.js" charset="utf-8"></script>
+    <script src="./resources/functions.js" charset="utf-8"></script>
+    <script src="./resources/main.js" charset="utf-8"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <link rel="stylesheet" href="./resources/style.css">
+  </head>
+  <body>
+  <div class="jumbotron text-center">
+    <h1>Config Platform</h1>
+    <button id="showMainViewBtn" class="btn btn-primary">All Configs</button>
+    <button id="showAddViewBtn" class="btn btn-primary">Add Configs</button>
+    <button id="editBtn" class="btn btn-danger" style="display: none">Selected Config</button>
+  </div>
+  <!-- New Item - container-fluid (WARNING, HOST DIV!!! RESTRICTED MODIFICATION) -->
+  <div class="container-fluid">
+    <!-- New Item - mainView -->
+    <div id="mainView" class="row">
+      <div class="col-8 offset-2">
+        <!-- Item page header-->
+        <form class="form-inline">
+          <div class="form-group mb-2">
+            <h4 class="display-4">Configs</h4>
+          </div>
+          <div class="form-group mx-sm-3 mb-2">
+            <!--
+              Refresh button
+            -->
+            <button id="refreshBtn" class="btn btn-primary">↻</button>
+          </div>
+        </form>
+        <!-- Item page view -->
+        <div class="row">
+          <div class="col-10 offset-1">
+            <table id="mainTable" class="table" cellspacing="0" width="100%">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Contract</th>
+                  <th>Event Type</th>
+                </tr>
+              </thead>
+              <tbody id="mainBody">
+              </tbody>
+            </table>
+            <div class="d-flex justify-content-center" style="margin-top: 50px;">
+              <div class="spinner-border" id="loadingView" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- New Item - addConfigView -->
+    <div id="addConfigView" class="row">
+      <div class="col-8 offset-2">
+        <h4 class="display-4">Configuration</h4>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <div class="table">
+              <!-- Listing or Sale -->
+              <hr>
+              <div class="form-check" style="padding-left: 0px;">
+                <select class="form-select-input" id="formAction" required>
+                  <option value="LISTING">Listing</option>
+                  <option value="SALE">Sale</option>
+                </select>
+                <label class="form-select-label" for="formAction">Bot action</label>
+              </div>
+              <br>
+              <!-- Contract Address field -->
+              <label for="formContract">Address or Slug</label>
+              <input type="text" id="formContract" class="form-control" maxlength="105" required></input>
+              <small class="form-text text-muted">
+                This contract field can be a typical 0xabcd12345... address or a slug.
+              </small>
+              <br>
+              <!-- Interval field -->
+              <label for="formInterval">Update Frequency</label>
+              <input type="number" id="formInterval" class="form-control" required></input>
+              <small class="form-text text-muted">
+                The update frequency is in milliseconds.
+              </small>
+              <br>
+              <!-- Discord fields -->
+              <hr>
+              <label>Discord</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formDiscordExclude">
+                <label class="form-check-label" for="formDiscordExclude">Exclude Discord?</label>
+              </div>
+              <br>
+              <input type="text" id="formDiscordToken" class="form-control" placeholder="Discord Token"></input>
+              <small class="form-text text-muted">Discord token</small><br>
+              <input type="text" id="formDiscordChannelId" class="form-control" placeholder="Discord Channel ID"></input>
+              <small class="form-text text-muted">Discord channel id</small><br>
+              <div class="form-check" style="padding-left: unset">
+                <input class="form-color-input" type="color" id="formDiscordMessageColor" value="#FFC800">
+                <label class="form-check-label" for="formDiscordMessageColor">Message Color</label>
+              </div>
+              <br>
+              <!-- Twitter fields -->
+              <hr>
+              <label>Twitter</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formTwitterExclude">
+                <label class="form-check-label" for="formTwitterExclude">Exclude Twitter?</label>
+              </div>
+              <br>
+              <input type="text" id="formTwitterAccessToken" class="form-control" placeholder="Twitter Access Token"></input>
+              <small class="form-text text-muted">Twitter Access Token</small><br>
+              <input type="text" id="formTwitterAccessTokenSecret" class="form-control" placeholder="Twitter Access Token Secret"></input>
+              <small class="form-text text-muted">Twitter Access Token Secret</small><br>
+              <input type="text" id="formTwitterApiKey" class="form-control" placeholder="Twitter Api Key"></input>
+              <small class="form-text text-muted">Twitter Api Key</small><br>
+              <input type="text" id="formTwitterApiKeySecret" class="form-control" placeholder="Twitter Api Key Secret"></input>
+              <small class="form-text text-muted">Twitter Api Key Secret</small><br>
+
+              <label for="formTwitterTemplate">Custom Template</label>
+              <textarea id="formTwitterTemplate" class="form-control" rows="3" maxlength="250"></textarea>
+              <br>
+              <!-- OpenSea Fields -->
+              <hr>
+              <label>OpenSea</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaExclude">
+                <label class="form-check-label" for="formOpenseaExclude">Exclude OpenSea?</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaShowBundles" checked>
+                <label class="form-check-label" for="formOpenseaShowBundles">Show Bundles</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaSlug">
+                <label class="form-check-label" for="formOpenseaSlug">Contract address field is a slug, example select this if using <code>deadfellaz</code> instead of <code>0x2acab3dea77832c09420663b0e1cb386031ba17b</code></label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaSolana">
+                <label class="form-check-label" for="formOpenseaSolana">Collection is Solana</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaPolygon">
+                <label class="form-check-label" for="formOpenseaPolygon">Collection is Polygon</label>
+              </div>
+              <br>
+              <!-- LooksRare Fields -->
+              <hr>
+              <label>LooksRare</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formLooksrareExclude">
+                <label class="form-check-label" for="formLooksrareExclude">Exclude LooksRare?</label>
+              </div>
+              <!-- Rarity Fields -->
+              <hr>
+              <label>Rarity</label><br>
+              <div class="form-check" style="padding-left: 0px;">
+                <select class="form-select-input" id="formRarityEngine">
+                  <option value="NONE" selected>None</option>
+                  <option value="METADATA">Metadata</option>
+                  <option value="TRAIT_SNIPER">Trait Sniper</option>
+                </select>
+                <label class="form-select-label" for="formRarityEngine">Rarity selection</label>
+              </div>
+              <br>
+
+              <!-- Submit button -->
+              <button id="formSaveBtn" class="btn btn-primary form-control" style="margin-bottom: 50px;margin-top: 15px;">💽 Save</button><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- New Item -->
+    <!-- <div id="editView" class="row">
+      <div class="col-8 offset-2">
+        <h4 class="display-4">Modify task list</h4>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Uuid</th>
+                  <th>Description</th>
+                  <th>Name</th>
+                  <th>Edit</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+              <tbody id="editBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> -->
+    <!-- New Item -->
+    <div id="editConfigView" class="row">
+      <div class="col-8 offset-2">
+        <h4 class="display-4" id="eFormName">Edit task</h4>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <div class="table">
+              <br>
+              <!-- Contract Address field -->
+              <label for="eFormContract">Address or Slug</label>
+              <input type="text" id="eFormContract" class="form-control" maxlength="105" readonly></input>
+              <small class="form-text text-muted">
+                This contract field can be a typical 0xabcd12345... address or a slug.
+              </small>
+              <br>
+              <!-- Interval field -->
+              <label for="eFormInterval">Update Frequency</label>
+              <input type="number" id="eFormInterval" class="form-control"></input>
+              <small class="form-text text-muted">
+                The update frequency is in milliseconds.
+              </small>
+              <br>
+              <!-- Discord fields -->
+              <hr>
+              <label>Discord</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormDiscordExclude">
+                <label class="form-check-label" for="eFormDiscordExclude">Exclude Discord?</label>
+              </div>
+              <br>
+              <input type="text" id="eFormDiscordToken" class="form-control" placeholder="Discord Token"></input>
+              <small class="form-text text-muted">Discord token</small><br>
+              <input type="text" id="eFormDiscordChannelId" class="form-control" placeholder="Discord Channel ID"></input>
+              <small class="form-text text-muted">Discord channel id</small><br>
+              <div class="form-check" style="padding-left: unset">
+                <input class="form-color-input" type="color" id="eFormDiscordMessageColor" value="#FFC800">
+                <label class="form-check-label" for="eFormDiscordMessageColor">Message Color</label>
+              </div>
+              <br>
+              <!-- Twitter fields -->
+              <hr>
+              <label>Twitter</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormTwitterExclude">
+                <label class="form-check-label" for="eFormTwitterExclude">Exclude Twitter?</label>
+              </div>
+              <br>
+              <input type="text" id="eFormTwitterAccessToken" class="form-control" placeholder="Twitter Access Token"></input>
+              <small class="form-text text-muted">Twitter Access Token</small><br>
+              <input type="text" id="eFormTwitterAccessTokenSecret" class="form-control" placeholder="Twitter Access Token Secret"></input>
+              <small class="form-text text-muted">Twitter Access Token Secret</small><br>
+              <input type="text" id="eFormTwitterApiKey" class="form-control" placeholder="Twitter Api Key"></input>
+              <small class="form-text text-muted">Twitter Api Key</small><br>
+              <input type="text" id="eFormTwitterApiKeySecret" class="form-control" placeholder="Twitter Api Key Secret"></input>
+              <small class="form-text text-muted">Twitter Api Key Secret</small><br>
+
+              <label for="eFormTwitterTemplate">Custom Template</label>
+              <textarea id="eFormTwitterTemplate" class="form-control" rows="3" maxlength="250"></textarea>
+              <br>
+              <!-- OpenSea Fields -->
+              <hr>
+              <label>OpenSea</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaExclude">
+                <label class="form-check-label" for="eFormOpenseaExclude">Exclude OpenSea?</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaShowBundles" checked>
+                <label class="form-check-label" for="eFormOpenseaShowBundles">Show Bundles</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaSlug">
+                <label class="form-check-label" for="eFormOpenseaSlug">Contract address field is a slug, example select this if using <code>deadfellaz</code> instead of <code>0x2acab3dea77832c09420663b0e1cb386031ba17b</code></label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaSolana">
+                <label class="form-check-label" for="eFormOpenseaSolana">Collection is Solana</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaPolygon">
+                <label class="form-check-label" for="eFormOpenseaPolygon">Collection is Polygon</label>
+              </div>
+              <br>
+              <!-- LooksRare Fields -->
+              <hr>
+              <label>LooksRare</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormLooksrareExclude">
+                <label class="form-check-label" for="eFormLooksrareExclude">Exclude LooksRare?</label>
+              </div>
+              <!-- Rarity Fields -->
+              <hr>
+              <label>Rarity</label><br>
+              <div class="form-check" style="padding-left: 0px;">
+                <select class="form-select-input" id="eFormRarityEngine">
+                  <option value="NONE" selected>None</option>
+                  <option value="METADATA">Metadata</option>
+                  <option value="TRAIT_SNIPER">Trait Sniper</option>
+                </select>
+                <label class="form-select-label" for="eFormRarityEngine">Rarity selection</label>
+              </div>
+              <br>
+            
+              <!-- Submit button -->
+              <button id="eFormSaveBtn" class="btn btn-primary form-control" style="margin-bottom: 20px;margin-top: 15px;">💽 Save</button><br>
+              <button id="eFormDeleteBtn" class="btn btn-danger form-control" style="margin-bottom: 50px;">🗑 Delete</button><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </body>
+</html>

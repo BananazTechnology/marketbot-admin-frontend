@@ -1,0 +1,15 @@
+#mainView {
+/*  display: none; */
+}
+
+#addConfigView {
+  display: none;
+}
+
+#editView {
+  display: none;
+}
+
+#editConfigView {
+  display: none;
+}

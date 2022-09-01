@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Configs</title>
+    <link rel="icon" href="./resources/memo.png">
+    <!-- Javascript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <!-- Lines 12-27 from ./resources/global.js -->
+    <script>
+        /** Global variables */
+        // TODO: add descriptions
+        let activeId;
+        let activeAction;
+        let activeConfig;
+        let mainListTable;
+        let mainListJSON;
+        let mainSaleTable;
+        let mainSaleJSON;
+        let apiUrl = "http://proxy.bananaztech.com/api/configs/";
+        let apiKey = "NTVPMGQ5dippbnF5SWs2b3AzM0I2TDcqR1hadWk5cGoK";
+    </script>
+    <!-- Lines 29-475 from ./resources/functions.js -->
+    <script>
+        /**
+         * Images Platform:
+         * Author: Aaron Renner (admin@aaronrenner.com)
+         */
+
+        /** Reads HTTP Query Params
+         * @return (Array) of Objects 
+         */
+        function getUrlVars() {
+            var vars = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for(var i = 0; i < hashes.length; i++)
+            {
+                hash = hashes[i].split('=');
+                vars.push(hash[0]);
+                vars[hash[0]] = hash[1];
+            }
+            return vars;
+        }
+
+        /** Append query K/V pair to URL
+         *  @param (String) key
+         *  @param (String) value
+         *  @return (String)
+         */
+        function appendQueryToThisURL(key, value) {
+            let protocol;
+            let host;
+            let queryParam;
+
+            if(window.location.hostname == "") { /** localhost / Dev env */
+                protocol = window.location.protocol;
+                host = window.location.pathname;
+            } else { /** Prod env */
+                protocol = window.location.protocol;
+                host = window.location.hostname;
+            }
+
+            queryParam = "?"+key+"="+value;
+            return protocol+host+queryParam;
+        }
+
+        // function asyncLoadImages() {
+        //     for(i=0; i<mainDataJSON.length; i++) {
+        //         let buffer = mainDataJSON[i];
+        //         $.ajax({
+        //             url: apiUrl+"/"+buffer.uuid,
+        //             method : 'GET',
+        //             contentType : 'application/json',
+        //             success: function(data, status, xhr){
+        //                 $('#'+data.uuid+'-image').replaceWith('<td><a href=\''+ appendQueryToThisURL('imageUuid', data.uuid) +'\'><image style=\'width: 96px; height: 96px;\' src=data:'+ data.mimeType +';base64,'+ data.image +'></a></td>');
+        //             },
+        //             error: function(error, status, xhr){
+        //                 $('#'+buffer.uuid+'-image').replaceWith('<td><image style=\"width: 96px; height: 96px;\" src=./resources/error.png></td>');
+        //             }
+        //         });
+        //     }
+        // }
+
+        function setActiveUuid(uuid) {
+            const uuidSplit = uuid.split("-");
+            console.log("Setting new selected id="+uuidSplit[0]+",action="+uuidSplit[1]);
+            activeId = uuidSplit[0];
+            activeAction = uuidSplit[1];
+        }
+
+        function saveNewConfig() {
+            const dataIn = readConfigFromHTML("form");
+            let action = $('#formAction').val();
+            action = action.toLowerCase();
+
+            if(dataIn.contractAddress.match("(-?[A-Za-z0-9]+)") && 
+            dataIn.interval >= 10000) {
+
+                $.ajax({
+                    url: apiUrl+action+"s?apikey="+apiKey,
+                    method : 'POST',
+                    contentType : 'application/json',
+                    data: JSON.stringify(dataIn),
+                    success:function(data, status, xhr){
+                        // split location header by foward slash
+                        const location = xhr.getResponseHeader('Location').split('/');
+                        // get last entry of location array for id
+                        const id = location[location.length-1];
+                        buildEditView((id+"-"+action));
+                    },
+                    error:function(error, status){
+                        console.log(error);
+                        alert(JSON.stringify(error));
+                    }
+                });  
+            } else {
+                alert("Invalid contract address and/or interval");
+            }
+        }
+
+        function loadConfigs() {
+            /** Setup HTML elements */
+            $('#loadingView').show();
+            mainBody.innerHTML = "";
+
+            // Load listings
+            $.ajax({
+                url: apiUrl+"listings?showAll=true&apikey="+apiKey,
+                method : 'GET',
+                contentType : 'application/json',
+                success: function(data, status, xhr){
+                    console.log(data);
+                    data = data.reverse();
+                    mainListJSON = data;
+                    let db = data;
+
+                    // Init vars
+                    let text = '';
+
+                    for (i=0; i < db.length; i++) {
+                        const uuid = db[i].id+"-listing";
+                        text += '<tr id=\"'+uuid+'\">';
+                        text += '<td id=\"'+uuid+'-image\"><div class=\"spinner-grow\" role=\"status\" style=\"width: 48px; height: 48px;\""></div></td>';
+                        text += '<td id=\"'+uuid+'-contract\"><a href="#" onclick=\"buildEditView(\''+uuid+'\');\">'+ db[i].contractAddress +'</a></td>';
+                        text += '<td id=\"'+uuid+'-eventType\">Listings</td>';
+                        text += '</tr>';
+                        getCollectionImageByConfigIdAndEventType(db[i].contractAddress, uuid);
+                    }
+
+                    // Present
+                    mainBody.innerHTML += text;
+                },
+                error: function(error, status, xhr){
+                    console.log(error);
+                    alert(JSON.stringify(error));
+                }
+            });
+
+            // Load sales
+            $.ajax({
+                url: apiUrl+"sales?showAll=true&apikey="+apiKey,
+                method : 'GET',
+                contentType : 'application/json',
+                success: function(data, status, xhr){
+                    console.log(data);
+                    data = data.reverse();
+                    mainSaleJSON = data;
+                    let db = data;
+
+                    // Init vars
+                    let text = '';
+
+                    for (i=0; i < db.length; i++) {
+                        const uuid = db[i].id+"-sale";
+                        text += '<tr id=\"'+uuid+'\">';
+                        text += '<td id=\"'+uuid+'-image\"><div class=\"spinner-grow\" role=\"status\" style=\"width: 48px; height: 48px;\""></div></td>';
+                        text += '<td id=\"'+uuid+'-contract\"><a href="#" onclick=\"buildEditView(\''+uuid+'\');\">'+ db[i].contractAddress +'</a></td>';
+                        text += '<td id=\"'+uuid+'-eventType\">Sales</td>';
+                        text += '</tr>';
+                        getCollectionImageByConfigIdAndEventType(db[i].contractAddress, uuid);
+                    }
+                    // Present
+                    mainBody.innerHTML += text;
+                },
+                error: function(error, status, xhr){
+                    console.log(error);
+                    alert(JSON.stringify(error));
+                }
+            });
+            $('#loadingView').hide();
+        }
+
+        function loadActiveConfig() {
+            $.ajax({
+                url: apiUrl+"/"+activeAction+"s/"+activeId+"?apikey="+apiKey,
+                method : 'GET',
+                contentType : 'application/json',
+                success: function(data){
+                    console.log(data);
+                    $('#eFormAction').val(activeAction.toUpperCase());
+                    $('#eFormContract').val(data.contractAddress);
+                    $('#eFormInterval').val(data.interval);
+                    $('#eFormDiscordExclude').prop("checked", data.excludeDiscord);
+                    $('#eFormDiscordToken').val(data.discordToken);
+                    $('#eFormDiscordChannelId').val(data.discordChannelId);
+                    $('#eFormDiscordMessageColor').val((data.discordMessageColor != null) ? ("#"+data.discordMessageColor.toString(16)) : "#FFC800");
+                    $('#eFormTwitterExclude').prop("checked", data.excludeTwitter);
+                    $('#eFormTwitterAccessToken').val(data.twitterAccessToken);
+                    $('#eFormTwitterAccessTokenSecret').val(data.twitterAccessTokenSecret);
+                    $('#eFormTwitterApiKey').val(data.twitterApiKey);
+                    $('#eFormTwitterApiKeySecret').val(data.twitterApiKeySecret);
+                    $('#eFormTwitterTemplate').val(data.twitterMessageTemplate);
+                    $('#eFormOpenseaExclude').prop("checked", data.excludeOpensea);
+                    $('#eFormOpenseaShowBundles').prop("checked", data.showBundles);
+                    $('#eFormOpenseaSlug').prop("checked", data.isSlug);
+                    $('#eFormOpenseaSolana').prop("checked", data.solanaOnOpensea);
+                    $('#eFormOpenseaPolygon').prop("checked", data.polygonOnOpensea);
+                    $('#eFormLooksrareExclude').prop("checked", data.excludeLooksrare);
+                    $('#eFormRarityEngine').val(data.rarityEngine);
+
+                    // Save response body in memory
+                    activeConfig = data;
+                },
+                error: function(error, status, xhr){
+                    alert("The requested config could not be found");
+                }
+            });
+        }
+
+        function updateActiveConfig() {
+            const dataInput = readConfigFromHTML("eForm");
+            console.log(dataInput);
+            const dataDiff = getConfigDiff(dataInput);
+            console.log(dataDiff);
+            const action = activeAction.toLowerCase();
+
+            if(dataInput.contractAddress.match("(-?[A-Za-z0-9]+)") && 
+            dataInput.interval >= 10000) {
+                $.ajax({
+                    url: apiUrl+action+"s/"+activeId+"?apikey="+apiKey,
+                    method : 'PATCH',
+                    contentType : 'application/json',
+                    data: JSON.stringify(dataDiff),
+                    dataType: 'application/json',
+                    success:function(){
+                        buildEditView((activeId+"-"+action));
+                        alert("Configuration updated");
+                    },
+                    error:function(error, status){
+                        console.log(error);
+                        alert(JSON.stringify(error));
+                    }
+                });  
+            }
+        }
+
+        function deleteActiveConfig() {
+            $.ajax({
+                url: apiUrl+activeAction+"s/"+activeId+"?apikey="+apiKey,
+                method : 'DELETE',
+                success:function(){
+                    location.reload();
+                },
+                error:function(error, status){
+                    console.log(error);
+                    alert(JSON.stringify(error));
+                }
+            });
+        }
+
+        function updateEditBtn() {
+            let editBtn = document.querySelector('#editBtn');
+            editBtn.innerText = "Selected Config: " + activeId + " (" + activeAction + ")";
+            eFormName.innerText="Edit task: " + activeId + " (" + activeAction + ")"
+            editBtn.style.display="";
+        }
+
+        function buildEditView(uuid) {
+            console.log(uuid);
+            // Update active config
+            setActiveUuid(uuid);
+            // Load config into memory and set UI
+            loadActiveConfig();
+            // Setters
+            let mainView = document.querySelector("#mainView");
+            let addConfigView = document.querySelector("#addConfigView");
+            let editConfigView = document.querySelector("#editConfigView");
+            // Update CSS
+            mainView.style.display = "none";
+            addConfigView.style.display = "none";
+            editConfigView.style.display = "block";
+            updateEditBtn();
+        }
+
+        function readConfigFromHTML(prefix) {
+            const color = $('#'+prefix+'DiscordMessageColor').val().substring(1);
+            let discordToken = null;
+            let discordChannelId = null;
+            let twitterTemplate = null;
+            let twitterAccessToken = null;
+            let twitterAccessTokenSecret = null;
+            let twitterApiKey = null;
+            let twitterApiKeySecret = null;
+
+            // Discord Token
+            const discordTokenDataFromPage = $('#'+prefix+'DiscordToken').val();
+            if(discordTokenDataFromPage.length > 1) {
+                discordToken = discordTokenDataFromPage;
+            }
+            // Discord Channel ID
+            const discordChannelIdDataFromPage = $('#'+prefix+'DiscordChannelId').val();
+            if(discordChannelIdDataFromPage.length > 1) {
+                discordChannelId = discordChannelIdDataFromPage;
+            }
+            // Twitter Template
+            const twitterTemplateDataFromPage = $('#'+prefix+'TwitterTemplate').val();
+            if(twitterTemplateDataFromPage.length > 1) {
+                twitterTemplate = twitterTemplateDataFromPage;
+            }
+            // Twitter Access Token
+            const twitterAccessTokenDataFromPage = $('#'+prefix+'TwitterAccessToken').val();
+            if(twitterAccessTokenDataFromPage.length > 1) {
+                twitterAccessToken = twitterAccessTokenDataFromPage;
+            }
+            // Twitter Access Token Secret
+            const twitterAccessTokenSecretDataFromPage = $('#'+prefix+'TwitterAccessTokenSecret').val();
+            if(twitterAccessTokenSecretDataFromPage.length > 1) {
+                twitterAccessTokenSecret = twitterAccessTokenSecretDataFromPage;
+            }
+            // Twitter Api Key
+            const twitterApiKeyDataFromPage = $('#'+prefix+'TwitterApiKey').val();
+            if(twitterApiKeyDataFromPage.length > 1) {
+                twitterApiKey = twitterApiKeyDataFromPage;
+            }
+            // Twitter Api Key Secret
+            const twitterApiKeySecretDataFromPage = $('#'+prefix+'TwitterApiKeySecret').val();
+            if(twitterApiKeySecretDataFromPage.length > 1) {
+                twitterApiKeySecret = twitterApiKeySecretDataFromPage;
+            }
+
+            const dataOut = {
+                contractAddress: $('#'+prefix+'Contract').val(),
+                interval: parseInt($('#'+prefix+'Interval').val()),
+                excludeDiscord: $('#'+prefix+'DiscordExclude').prop("checked"),
+                discordToken: discordToken,
+                discordChannelId: discordChannelId,
+                discordMessageColor: parseInt(color, 16),
+                excludeTwitter: $('#'+prefix+'TwitterExclude').prop("checked"),
+                twitterAccessToken: twitterAccessToken,
+                twitterAccessTokenSecret: twitterAccessTokenSecret,
+                twitterApiKey: twitterApiKey,
+                twitterApiKeySecret: twitterApiKeySecret,
+                twitterMessageTemplate: twitterTemplate,
+                excludeOpensea: $('#'+prefix+'OpenseaExclude').prop("checked"),
+                excludeLooksrare: $('#'+prefix+'LooksrareExclude').prop("checked"),
+                showBundles: $('#'+prefix+'OpenseaShowBundles').prop("checked"),
+                isSlug: $('#'+prefix+'OpenseaSlug').prop("checked"),
+                solanaOnOpensea: $('#'+prefix+'OpenseaSolana').prop("checked"),
+                polygonOnOpensea: $('#'+prefix+'OpenseaPolygon').prop("checked"),
+                rarityEngine: $('#'+prefix+'RarityEngine').val(),
+            };
+            console.log("Read config from HTML: " + JSON.stringify(dataOut));
+            return dataOut;
+        }
+
+        function getConfigDiff(inConf) {
+            let outData = {}
+            // Contract Address
+            if(inConf.contractAddress != activeConfig.contractAddress) {
+                outData["contractAddress"] = inConf.contractAddress;
+            }
+            // Interval
+            if(inConf.interval != activeConfig.interval) {
+                outData["interval"] = inConf.interval;
+            }
+            // Discord Exclude
+            if(inConf.excludeDiscord != activeConfig.excludeDiscord) {
+                outData["excludeDiscord"] = inConf.excludeDiscord;
+            }
+            // Discord Token
+            if(inConf.discordToken != activeConfig.discordToken) {
+                outData["discordToken"] = inConf.discordToken;
+            }
+            // Discord Channel ID
+            if(inConf.discordChannelId != activeConfig.discordChannelId) {
+                outData["discordChannelId"] = inConf.discordChannelId;
+            }
+            // Discord Message Color
+            if((inConf.discordMessageColor != activeConfig.discordMessageColor) && (inConf.discordMessageColor != 16762880)) {
+                outData["discordMessageColor"] = inConf.discordMessageColor;
+            }
+            // Twitter Exclude
+            if(inConf.excludeTwitter != activeConfig.excludeTwitter) {
+                outData["excludeTwitter"] = inConf.excludeTwitter;
+            }
+            // Twitter Access Token
+            if(inConf.twitterAccessToken != activeConfig.twitterAccessToken) {
+                outData["twitterAccessToken"] = inConf.twitterAccessToken;
+            }
+            // Twitter Access Token Secret
+            if(inConf.twitterAccessTokenSecret != activeConfig.twitterAccessTokenSecret) {
+                outData["twitterAccessTokenSecret"] = inConf.twitterAccessTokenSecret;
+            }
+            // Twitter Api Key
+            if(inConf.twitterApiKey != activeConfig.twitterApiKey) {
+                outData["twitterApiKey"] = inConf.twitterApiKey;
+            }
+            // Twitter Api Key Secret
+            if(inConf.twitterApiKeySecret != activeConfig.twitterApiKeySecret) {
+                outData["twitterApiKeySecret"] = inConf.twitterApiKeySecret;
+            }
+            // Twitter Message Template
+            if(inConf.twitterMessageTemplate != activeConfig.twitterMessageTemplate) {
+                outData["twitterMessageTemplate"] = inConf.twitterMessageTemplate;
+            }
+            // Opensea Exclude
+            if(inConf.excludeOpensea != activeConfig.excludeOpensea) {
+                outData["excludeOpensea"] = inConf.excludeOpensea;
+            }
+            // Looksrare Exclude
+            if(inConf.excludeLooksrare != activeConfig.excludeLooksrare) {
+                outData["excludeLooksrare"] = inConf.excludeLooksrare;
+            }
+            // Show Bundles
+            if(inConf.showBundles != activeConfig.showBundles) {
+                outData["showBundles"] = inConf.showBundles;
+            }
+            // Opensea Slug
+            if(inConf.isSlug != activeConfig.isSlug) {
+                outData["isSlug"] = inConf.isSlug;
+            }
+            // Opensea Solana
+            if(inConf.solanaOnOpensea != activeConfig.solanaOnOpensea) {
+                outData["solanaOnOpensea"] = inConf.solanaOnOpensea;
+            }
+            // Opensea Polygon
+            if(inConf.polygonOnOpensea != activeConfig.polygonOnOpensea) {
+                outData["polygonOnOpensea"] = inConf.polygonOnOpensea;
+            }
+            // Rarity Engine
+            if(inConf.rarityEngine != activeConfig.rarityEngine) {
+                outData["rarityEngine"] = inConf.rarityEngine;
+            }
+            return outData;
+        }
+
+        async function getCollectionImageByConfigIdAndEventType(internalContractId, uuid) {
+            $.ajax({
+                url: apiUrl+"events?apikey="+apiKey+"&contractAddress="+internalContractId+"&limit=1",
+                method : 'GET',
+                datatype : 'json',
+                success: function(data, status, xhr){
+                    console.log(data["content"][0]);
+                    const imageUrl = data["content"][0]["collectionImageUrl"];
+                    console.log("Got collection image: " + imageUrl);
+                    // create new image
+                    var image = new Image();
+                    // set image style
+                    image.style.width = "96px";
+                    image.style.height = "96px";
+                    // sets image url
+                    image.src = imageUrl;
+                    $('#'+uuid+'-image').replaceWith(image);
+                },
+                error: function(error, status, xhr){
+                    $('#'+buffer.uuid+'-image').replaceWith('<td><image style=\"width: 96px; height: 96px;\" src=./resources/error.png></td>');
+                }
+            });
+        }
+    </script>
+    <!-- Lines 477-615 from ./resources/main.js -->
+    <script>
+        /**
+         * Images Platform:
+         * Author: Aaron Renner (admin@aaronrenner.com)
+         */
+
+        $(document).ready(function() {
+        /** Enable search box tooltips */
+        $('#formSearch').tooltip()
+
+        /** UI interaction */
+        let showMainViewBtn = document.querySelector('#showMainViewBtn');
+        let refreshBtn = document.querySelector("#refreshBtn");
+        let showAddViewBtn = document.querySelector('#showAddViewBtn');
+
+        /** UI Views */
+        let mainView = document.querySelector("#mainView");
+
+        /** UI Add */
+        let formSaveBtn = document.querySelector("#formSaveBtn");
+        let addConfigView = document.querySelector("#addConfigView");
+
+        /** UI Edit */
+        let editBtn = document.querySelector('#editBtn');
+        let editConfigView = document.querySelector("#editConfigView");
+        let eFormSaveBtn = document.querySelector("#eFormSaveBtn");
+        // let eformId = document.querySelector("#eformId");
+        // let eformTask = document.querySelector("#eformTask");
+        // let eformName = document.querySelector("#eformName");
+        // let eFormSaveBtn = document.querySelector("#eFormSaveBtn");
+
+        showMainViewBtn.addEventListener('click', showOverview);
+        refreshBtn.addEventListener('click', loadConfigs);
+        showAddViewBtn.addEventListener('click', showAdd);
+        formSaveBtn.addEventListener('click', saveNewConfig);
+        editBtn.addEventListener('click', showEdit);
+        eFormSaveBtn.addEventListener('click', updateActiveConfig);
+        eFormDeleteBtn.addEventListener('click', deleteActiveConfig);
+        // eFormSaveBtn.addEventListener('click', console.log("change"));
+
+        $('#loadingViewLookup').hide();
+
+        /**
+         * Show add images view
+         */
+        function showAdd() {
+            mainView.style.display = "none";
+            addConfigView.style.display = "block";
+            // editView.style.display = "none";
+            editConfigView.style.display = "none";
+        }
+
+        /**
+         * Show list of images
+         */
+        function showOverview() {
+            mainView.style.display = "block";
+            addConfigView.style.display = "none";
+            // editView.style.display = "none";
+            editConfigView.style.display = "none";
+        }
+
+        /**
+         * Show edit view
+         * 
+         * Disabled till permissions released
+         */
+        function showEdit() {
+            mainView.style.display = "none";
+            addConfigView.style.display = "none";
+            // editView.style.display = "block";
+            editConfigView.style.display = "block";
+            //editTable();
+        }
+
+        /**
+         function editTable() {
+            let text = '';
+            for (n=0; n < db.length; n++) {
+            text += '<tr>';
+            text += '<td>'+ db[n].uuid +'</td>';
+            text += '<td>'+ db[n].description +'</td>';
+            text += '<td>'+ db[n].name +'</td>';
+            text += '<td><button data-id="'+n+'" class="btn btn-warning edit">Edit</button></td>';
+            text += '<td><button id="'+n+'" class="btn btn-info done">Done!</button></td>';
+            text += '</tr>';
+            }
+            editBody.innerHTML = text;
+            let doneBtn = document.querySelectorAll(".done");
+            let editBtn = document.querySelectorAll(".edit");
+            for (k=0; k < doneBtn.length; k++) {
+            doneBtn[k].addEventListener('click',done);
+            editBtn[k].addEventListener('click',edit);
+            }
+        }
+
+        function edit() {
+            mainView.style.display = "none";
+            addConfigView.style.display = "none";
+            editView.style.display = "none";
+            editConfigView.style.display = "block";
+            id = this.getAttribute('data-id');
+            eformId.value = db[id].uuid;
+            eformTask.value = db[id].description;
+            eformName.value = db[id].name;
+        }
+
+        function change() {
+            let formId = eformId.value;
+            let formTask = eformTask.value;
+            let formName = eformName.value;
+
+            db[id] = {
+            id : formId,
+            task: formTask,
+            name: formName
+            };
+        ``
+            //createTable();
+            showOverview();
+        }
+
+        function done() {
+            let id = this.uuid;
+            db.splice(id,1);
+            //createTable();
+            showOverview();
+        }
+        */
+
+        loadConfigs();
+        if(getUrlVars()['selectedUuid'] != undefined) {
+            const selectedUuid = getUrlVars()['selectedUuid'];
+            buildEditView(selectedUuid);
+        } else {
+            showOverview();
+        }
+        });
+    </script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <!-- Lines 34-50 from ./resources/style.css" -->
+    <style>
+        #mainView {
+        /*  display: none; */
+        }
+
+        #addConfigView {
+            display: none;
+        }
+
+        #editView {
+            display: none;
+        }
+
+        #editConfigView {
+            display: none;
+        }
+    </style>
+  </head>
+  <body>
+  <div class="jumbotron text-center">
+    <h1>Config Platform</h1>
+    <button id="showMainViewBtn" class="btn btn-primary">All Configs</button>
+    <button id="showAddViewBtn" class="btn btn-primary">Add Configs</button>
+    <button id="editBtn" class="btn btn-danger" style="display: none">Selected Config</button>
+  </div>
+  <!-- New Item - container-fluid (WARNING, HOST DIV!!! RESTRICTED MODIFICATION) -->
+  <div class="container-fluid">
+    <!-- New Item - mainView -->
+    <div id="mainView" class="row">
+      <div class="col-8 offset-2">
+        <!-- Item page header-->
+        <form class="form-inline">
+          <div class="form-group mb-2">
+            <h4 class="display-4">Configs</h4>
+          </div>
+          <div class="form-group mx-sm-3 mb-2">
+            <!--
+              Refresh button
+            -->
+            <button id="refreshBtn" class="btn btn-primary">↻</button>
+          </div>
+        </form>
+        <!-- Item page view -->
+        <div class="row">
+          <div class="col-10 offset-1">
+            <table id="mainTable" class="table" cellspacing="0" width="100%">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Contract</th>
+                  <th>Event Type</th>
+                </tr>
+              </thead>
+              <tbody id="mainBody">
+              </tbody>
+            </table>
+            <div class="d-flex justify-content-center" style="margin-top: 50px;">
+              <div class="spinner-border" id="loadingView" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- New Item - addConfigView -->
+    <div id="addConfigView" class="row">
+      <div class="col-8 offset-2">
+        <h4 class="display-4">Configuration</h4>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <div class="table">
+              <!-- Listing or Sale -->
+              <hr>
+              <div class="form-check" style="padding-left: 0px;">
+                <select class="form-select-input" id="formAction" required>
+                  <option value="LISTING">Listing</option>
+                  <option value="SALE">Sale</option>
+                </select>
+                <label class="form-select-label" for="formAction">Bot action</label>
+              </div>
+              <br>
+              <!-- Contract Address field -->
+              <label for="formContract">Address or Slug</label>
+              <input type="text" id="formContract" class="form-control" maxlength="105" required></input>
+              <small class="form-text text-muted">
+                This contract field can be a typical 0xabcd12345... address or a slug.
+              </small>
+              <br>
+              <!-- Interval field -->
+              <label for="formInterval">Update Frequency</label>
+              <input type="number" id="formInterval" class="form-control" required></input>
+              <small class="form-text text-muted">
+                The update frequency is in milliseconds.
+              </small>
+              <br>
+              <!-- Discord fields -->
+              <hr>
+              <label>Discord</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formDiscordExclude">
+                <label class="form-check-label" for="formDiscordExclude">Exclude Discord?</label>
+              </div>
+              <br>
+              <input type="text" id="formDiscordToken" class="form-control" placeholder="Discord Token"></input>
+              <small class="form-text text-muted">Discord token</small><br>
+              <input type="text" id="formDiscordChannelId" class="form-control" placeholder="Discord Channel ID"></input>
+              <small class="form-text text-muted">Discord channel id</small><br>
+              <div class="form-check" style="padding-left: unset">
+                <input class="form-color-input" type="color" id="formDiscordMessageColor" value="#FFC800">
+                <label class="form-check-label" for="formDiscordMessageColor">Message Color</label>
+              </div>
+              <br>
+              <!-- Twitter fields -->
+              <hr>
+              <label>Twitter</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formTwitterExclude">
+                <label class="form-check-label" for="formTwitterExclude">Exclude Twitter?</label>
+              </div>
+              <br>
+              <input type="text" id="formTwitterAccessToken" class="form-control" placeholder="Twitter Access Token"></input>
+              <small class="form-text text-muted">Twitter Access Token</small><br>
+              <input type="text" id="formTwitterAccessTokenSecret" class="form-control" placeholder="Twitter Access Token Secret"></input>
+              <small class="form-text text-muted">Twitter Access Token Secret</small><br>
+              <input type="text" id="formTwitterApiKey" class="form-control" placeholder="Twitter Api Key"></input>
+              <small class="form-text text-muted">Twitter Api Key</small><br>
+              <input type="text" id="formTwitterApiKeySecret" class="form-control" placeholder="Twitter Api Key Secret"></input>
+              <small class="form-text text-muted">Twitter Api Key Secret</small><br>
+
+              <label for="formTwitterTemplate">Custom Template</label>
+              <textarea id="formTwitterTemplate" class="form-control" rows="3" maxlength="250"></textarea>
+              <br>
+              <!-- OpenSea Fields -->
+              <hr>
+              <label>OpenSea</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaExclude">
+                <label class="form-check-label" for="formOpenseaExclude">Exclude OpenSea?</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaShowBundles" checked>
+                <label class="form-check-label" for="formOpenseaShowBundles">Show Bundles</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaSlug">
+                <label class="form-check-label" for="formOpenseaSlug">Contract address field is a slug, example select this if using <code>deadfellaz</code> instead of <code>0x2acab3dea77832c09420663b0e1cb386031ba17b</code></label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaSolana">
+                <label class="form-check-label" for="formOpenseaSolana">Collection is Solana</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formOpenseaPolygon">
+                <label class="form-check-label" for="formOpenseaPolygon">Collection is Polygon</label>
+              </div>
+              <br>
+              <!-- LooksRare Fields -->
+              <hr>
+              <label>LooksRare</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="formLooksrareExclude">
+                <label class="form-check-label" for="formLooksrareExclude">Exclude LooksRare?</label>
+              </div>
+              <!-- Rarity Fields -->
+              <hr>
+              <label>Rarity</label><br>
+              <div class="form-check" style="padding-left: 0px;">
+                <select class="form-select-input" id="formRarityEngine">
+                  <option value="NONE" selected>None</option>
+                  <option value="METADATA">Metadata</option>
+                  <option value="TRAIT_SNIPER">Trait Sniper</option>
+                </select>
+                <label class="form-select-label" for="formRarityEngine">Rarity selection</label>
+              </div>
+              <br>
+
+              <!-- Submit button -->
+              <button id="formSaveBtn" class="btn btn-primary form-control" style="margin-bottom: 50px;margin-top: 15px;">💽 Save</button><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- New Item -->
+    <!-- <div id="editView" class="row">
+      <div class="col-8 offset-2">
+        <h4 class="display-4">Modify task list</h4>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Uuid</th>
+                  <th>Description</th>
+                  <th>Name</th>
+                  <th>Edit</th>
+                  <th>Remove</th>
+                </tr>
+              </thead>
+              <tbody id="editBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> -->
+    <!-- New Item -->
+    <div id="editConfigView" class="row">
+      <div class="col-8 offset-2">
+        <h4 class="display-4" id="eFormName">Edit task</h4>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <div class="table">
+              <br>
+              <!-- Contract Address field -->
+              <label for="eFormContract">Address or Slug</label>
+              <input type="text" id="eFormContract" class="form-control" maxlength="105" readonly></input>
+              <small class="form-text text-muted">
+                This contract field can be a typical 0xabcd12345... address or a slug.
+              </small>
+              <br>
+              <!-- Interval field -->
+              <label for="eFormInterval">Update Frequency</label>
+              <input type="number" id="eFormInterval" class="form-control"></input>
+              <small class="form-text text-muted">
+                The update frequency is in milliseconds.
+              </small>
+              <br>
+              <!-- Discord fields -->
+              <hr>
+              <label>Discord</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormDiscordExclude">
+                <label class="form-check-label" for="eFormDiscordExclude">Exclude Discord?</label>
+              </div>
+              <br>
+              <input type="text" id="eFormDiscordToken" class="form-control" placeholder="Discord Token"></input>
+              <small class="form-text text-muted">Discord token</small><br>
+              <input type="text" id="eFormDiscordChannelId" class="form-control" placeholder="Discord Channel ID"></input>
+              <small class="form-text text-muted">Discord channel id</small><br>
+              <div class="form-check" style="padding-left: unset">
+                <input class="form-color-input" type="color" id="eFormDiscordMessageColor" value="#FFC800">
+                <label class="form-check-label" for="eFormDiscordMessageColor">Message Color</label>
+              </div>
+              <br>
+              <!-- Twitter fields -->
+              <hr>
+              <label>Twitter</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormTwitterExclude">
+                <label class="form-check-label" for="eFormTwitterExclude">Exclude Twitter?</label>
+              </div>
+              <br>
+              <input type="text" id="eFormTwitterAccessToken" class="form-control" placeholder="Twitter Access Token"></input>
+              <small class="form-text text-muted">Twitter Access Token</small><br>
+              <input type="text" id="eFormTwitterAccessTokenSecret" class="form-control" placeholder="Twitter Access Token Secret"></input>
+              <small class="form-text text-muted">Twitter Access Token Secret</small><br>
+              <input type="text" id="eFormTwitterApiKey" class="form-control" placeholder="Twitter Api Key"></input>
+              <small class="form-text text-muted">Twitter Api Key</small><br>
+              <input type="text" id="eFormTwitterApiKeySecret" class="form-control" placeholder="Twitter Api Key Secret"></input>
+              <small class="form-text text-muted">Twitter Api Key Secret</small><br>
+
+              <label for="eFormTwitterTemplate">Custom Template</label>
+              <textarea id="eFormTwitterTemplate" class="form-control" rows="3" maxlength="250"></textarea>
+              <br>
+              <!-- OpenSea Fields -->
+              <hr>
+              <label>OpenSea</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaExclude">
+                <label class="form-check-label" for="eFormOpenseaExclude">Exclude OpenSea?</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaShowBundles" checked>
+                <label class="form-check-label" for="eFormOpenseaShowBundles">Show Bundles</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaSlug">
+                <label class="form-check-label" for="eFormOpenseaSlug">Contract address field is a slug, example select this if using <code>deadfellaz</code> instead of <code>0x2acab3dea77832c09420663b0e1cb386031ba17b</code></label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaSolana">
+                <label class="form-check-label" for="eFormOpenseaSolana">Collection is Solana</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormOpenseaPolygon">
+                <label class="form-check-label" for="eFormOpenseaPolygon">Collection is Polygon</label>
+              </div>
+              <br>
+              <!-- LooksRare Fields -->
+              <hr>
+              <label>LooksRare</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormLooksrareExclude">
+                <label class="form-check-label" for="eFormLooksrareExclude">Exclude LooksRare?</label>
+              </div>
+              <!-- Rarity Fields -->
+              <hr>
+              <label>Rarity</label><br>
+              <div class="form-check" style="padding-left: 0px;">
+                <select class="form-select-input" id="eFormRarityEngine">
+                  <option value="NONE" selected>None</option>
+                  <option value="METADATA">Metadata</option>
+                  <option value="TRAIT_SNIPER">Trait Sniper</option>
+                </select>
+                <label class="form-select-label" for="eFormRarityEngine">Rarity selection</label>
+              </div>
+              <br>
+            
+              <!-- Submit button -->
+              <button id="eFormSaveBtn" class="btn btn-primary form-control" style="margin-bottom: 20px;margin-top: 15px;">💽 Save</button><br>
+              <button id="eFormDeleteBtn" class="btn btn-danger form-control" style="margin-bottom: 50px;">🗑 Delete</button><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </body>
+</html>
