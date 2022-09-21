@@ -49,3 +49,7 @@ _testmain.go
 
 # VS code workspace
 *.code-workspace
+
+## Ignore future changes to global config
+**/global.js
+src/resources/global.js
