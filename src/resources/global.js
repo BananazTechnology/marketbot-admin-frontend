@@ -13,5 +13,5 @@ let mainSaleJSON;
 // Uncomment the following lines for workstation development
 // DO NOT COMMIT THIS FILE
 // let APP_BACKEND_URL = "https://proxy.bananaz.tech/api/configs/";
-// let APP_BACKEND_API_KEY = "2JCt2CjGA57T6GHhxDHJstqJx2ENvZhvvZ3trsTCSwK5HSCZ8N";
+// let APP_BACKEND_API_KEY = "abcdefg";
 // DO NOT COMMIT THIS FILE
