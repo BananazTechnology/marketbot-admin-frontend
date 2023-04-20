@@ -53,3 +53,6 @@ _testmain.go
 ## Ignore future changes to global config
 **/global.js
 src/resources/global.js
+
+# Logs
+nginx/log/*

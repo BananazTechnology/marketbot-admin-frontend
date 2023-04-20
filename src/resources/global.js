@@ -1,3 +1,4 @@
+// DO NOT COMMIT THIS FILE
 /** Global variables */
 // TODO: add descriptions
 let activeId;
@@ -7,5 +8,10 @@ let mainListTable;
 let mainListJSON;
 let mainSaleTable;
 let mainSaleJSON;
-let apiUrl = "http://proxy.bananaztech.com/api/configs/";
-let apiKey = "NTVPMGQ5dippbnF5SWs2b3AzM0I2TDcqR1hadWk5cGoK";
+// DO NOT COMMIT THIS FILE
+// Variables are now added through startup script and configured in ENV
+// Uncomment the following lines for workstation development
+// DO NOT COMMIT THIS FILE
+// let APP_BACKEND_URL = "https://proxy.bananaz.tech/api/configs/";
+// let APP_BACKEND_API_KEY = "2JCt2CjGA57T6GHhxDHJstqJx2ENvZhvvZ3trsTCSwK5HSCZ8N";
+// DO NOT COMMIT THIS FILE

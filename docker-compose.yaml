@@ -2,8 +2,12 @@ version: "3.0"
 services:
   nginx:
     container_name: marketbot-frontend
-    # image: 
+    build:
+      context: .
     restart: always
+    environment:
+      APP_BACKEND_URL: https://proxy.bananaz.tech/api/configs/
+      APP_BACKEND_API_KEY: 2JCt2CjGA57T6GHhxDHJstqJx2ENvZhvvZ3trsTCSwK5HSCZ8N
     ports:
       - "8013:80"
     volumes:
@@ -13,6 +17,3 @@ services:
       interval: 1m30s
       timeout: 10s
       retries: 3
-networks:
-  default:
-    driver: bridge

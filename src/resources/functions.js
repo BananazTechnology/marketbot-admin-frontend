@@ -44,7 +44,7 @@ function appendQueryToThisURL(key, value) {
 //     for(i=0; i<mainDataJSON.length; i++) {
 //         let buffer = mainDataJSON[i];
 //         $.ajax({
-//             url: apiUrl+"/"+buffer.uuid,
+//             url: APP_BACKEND_URL+"/"+buffer.uuid,
 //             method : 'GET',
 //             contentType : 'application/json',
 //             success: function(data, status, xhr){
@@ -73,7 +73,7 @@ function saveNewConfig() {
        dataIn.interval >= 10000) {
 
         $.ajax({
-            url: apiUrl+action+"s?apikey="+apiKey,
+            url: APP_BACKEND_URL+action+"s?apikey="+APP_BACKEND_API_KEY,
             method : 'POST',
             contentType : 'application/json',
             data: JSON.stringify(dataIn),
@@ -101,7 +101,7 @@ function loadConfigs() {
 
     // Load listings
     $.ajax({
-        url: apiUrl+"listings?showAll=true&apikey="+apiKey,
+        url: APP_BACKEND_URL+"listings?showAll=true&apikey="+APP_BACKEND_API_KEY,
         method : 'GET',
         contentType : 'application/json',
         success: function(data, status, xhr){
@@ -134,7 +134,7 @@ function loadConfigs() {
 
     // Load sales
     $.ajax({
-        url: apiUrl+"sales?showAll=true&apikey="+apiKey,
+        url: APP_BACKEND_URL+"sales?showAll=true&apikey="+APP_BACKEND_API_KEY,
         method : 'GET',
         contentType : 'application/json',
         success: function(data, status, xhr){
@@ -168,7 +168,7 @@ function loadConfigs() {
 
 function loadActiveConfig() {
     $.ajax({
-        url: apiUrl+"/"+activeAction+"s/"+activeId+"?apikey="+apiKey,
+        url: APP_BACKEND_URL+"/"+activeAction+"s/"+activeId+"?apikey="+APP_BACKEND_API_KEY,
         method : 'GET',
         contentType : 'application/json',
         success: function(data){
@@ -213,7 +213,7 @@ function updateActiveConfig() {
     if(dataInput.contractAddress.match("(-?[A-Za-z0-9]+)") && 
     dataInput.interval >= 10000) {
         $.ajax({
-            url: apiUrl+action+"s/"+activeId+"?apikey="+apiKey,
+            url: APP_BACKEND_URL+action+"s/"+activeId+"?apikey="+APP_BACKEND_API_KEY,
             method : 'PATCH',
             contentType : 'application/json',
             data: JSON.stringify(dataDiff),
@@ -232,7 +232,7 @@ function updateActiveConfig() {
 
 function deleteActiveConfig() {
     $.ajax({
-        url: apiUrl+activeAction+"s/"+activeId+"?apikey="+apiKey,
+        url: APP_BACKEND_URL+activeAction+"s/"+activeId+"?apikey="+APP_BACKEND_API_KEY,
         method : 'DELETE',
         success:function(){
             location.reload();
@@ -422,7 +422,7 @@ function getConfigDiff(inConf) {
 
 async function getCollectionImageByConfigIdAndEventType(internalContractId, uuid) {
     $.ajax({
-        url: apiUrl+"events?apikey="+apiKey+"&contractAddress="+internalContractId+"&limit=1",
+        url: APP_BACKEND_URL+"events?apikey="+APP_BACKEND_API_KEY+"&contractAddress="+internalContractId+"&limit=1",
         method : 'GET',
         datatype : 'json',
         success: function(data, status, xhr){
