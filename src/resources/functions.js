@@ -119,6 +119,8 @@ function loadConfigs() {
                 text += '<td id=\"'+uuid+'-image\"><div class=\"spinner-grow\" role=\"status\" style=\"width: 48px; height: 48px;\""></div></td>';
                 text += '<td id=\"'+uuid+'-contract\"><a href="#" onclick=\"buildEditView(\''+uuid+'\');\">'+ db[i].contractAddress +'</a></td>';
                 text += '<td id=\"'+uuid+'-eventType\">Listings</td>';
+                text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeDiscord +'</td>';
+                text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeTwitter +'</td>';
                 text += '</tr>';
                 getCollectionImageByConfigIdAndEventType(db[i].contractAddress, uuid);
             }
@@ -152,6 +154,8 @@ function loadConfigs() {
                 text += '<td id=\"'+uuid+'-image\"><div class=\"spinner-grow\" role=\"status\" style=\"width: 48px; height: 48px;\""></div></td>';
                 text += '<td id=\"'+uuid+'-contract\"><a href="#" onclick=\"buildEditView(\''+uuid+'\');\">'+ db[i].contractAddress +'</a></td>';
                 text += '<td id=\"'+uuid+'-eventType\">Sales</td>';
+                text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeDiscord +'</td>';
+                text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeTwitter +'</td>';
                 text += '</tr>';
                 getCollectionImageByConfigIdAndEventType(db[i].contractAddress, uuid);
             }
