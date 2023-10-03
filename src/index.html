@@ -51,6 +51,7 @@
                   <th>Event Type</th>
                   <th>Disabled Discord</th>
                   <th>Disabled Twitter</th>
+                  <th>Active</th>
                 </tr>
               </thead>
               <tbody id="mainBody">
@@ -211,7 +212,7 @@
         </div>
       </div>
     </div> -->
-    <!-- New Item -->
+    <!-- New Item - editConfigView -->
     <div id="editConfigView" class="row">
       <div class="col-8 offset-2">
         <h4 class="display-4" id="eFormName">Edit task</h4>
@@ -219,6 +220,14 @@
           <div class="col-10 offset-1">
             <div class="table">
               <br>
+              <!-- Master Active field -->
+              <label>Active</label><br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eFormActive">
+                <label class="form-check-label" for="eFormActive">Master logic enabled</label>
+              </div>
+              <br>
+              <hr>
               <!-- Contract Address field -->
               <label for="eFormContract">Address or Slug</label>
               <input type="text" id="eFormContract" class="form-control" maxlength="105" readonly></input>

@@ -121,6 +121,7 @@ function loadConfigs() {
                 text += '<td id=\"'+uuid+'-eventType\">Listings</td>';
                 text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeDiscord +'</td>';
                 text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeTwitter +'</td>';
+                text += '<td id=\"'+uuid+'-active\">'+ db[i].active +'</td>';
                 text += '</tr>';
                 getCollectionImageByConfigIdAndEventType(db[i].contractAddress, uuid);
             }
@@ -156,6 +157,7 @@ function loadConfigs() {
                 text += '<td id=\"'+uuid+'-eventType\">Sales</td>';
                 text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeDiscord +'</td>';
                 text += '<td id=\"'+uuid+'-disabledDiscord\">'+ db[i].excludeTwitter +'</td>';
+                text += '<td id=\"'+uuid+'-active\">'+ db[i].active +'</td>';
                 text += '</tr>';
                 getCollectionImageByConfigIdAndEventType(db[i].contractAddress, uuid);
             }
@@ -177,6 +179,7 @@ function loadActiveConfig() {
         contentType : 'application/json',
         success: function(data){
             console.log(data);
+            $('#eFormActive').prop("checked", data.active);
             $('#eFormAction').val(activeAction.toUpperCase());
             $('#eFormContract').val(data.contractAddress);
             $('#eFormInterval').val(data.interval);
@@ -216,21 +219,21 @@ function updateActiveConfig() {
 
     if(dataInput.contractAddress.match("(-?[A-Za-z0-9]+)") && 
     dataInput.interval >= 10000) {
-        $.ajax({
-            url: APP_BACKEND_URL+action+"s/"+activeId+"?apikey="+APP_BACKEND_API_KEY,
-            method : 'PATCH',
-            contentType : 'application/json',
-            data: JSON.stringify(dataDiff),
-            dataType: 'application/json',
-            success:function(){
-                buildEditView((activeId+"-"+action));
-                alert("Configuration updated");
-            },
-            error:function(error, status){
-                console.log(error);
-                alert(JSON.stringify(error));
-            }
-        });  
+        // $.ajax({
+        //     url: APP_BACKEND_URL+action+"s/"+activeId+"?apikey="+APP_BACKEND_API_KEY,
+        //     method : 'PATCH',
+        //     contentType : 'application/json',
+        //     data: JSON.stringify(dataDiff),
+        //     dataType: 'application/json',
+        //     success:function(){
+        //         buildEditView((activeId+"-"+action));
+        //         alert("Configuration updated");
+        //     },
+        //     error:function(error, status){
+        //         console.log(error);
+        //         alert(JSON.stringify(error));
+        //     }
+        // });  
     }
 }
 
@@ -319,6 +322,7 @@ function readConfigFromHTML(prefix) {
     }
 
     const dataOut = {
+        active: $('#'+prefix+'Active').prop("checked"),
         contractAddress: $('#'+prefix+'Contract').val(),
         interval: parseInt($('#'+prefix+'Interval').val()),
         excludeDiscord: $('#'+prefix+'DiscordExclude').prop("checked"),
@@ -345,6 +349,10 @@ function readConfigFromHTML(prefix) {
 
 function getConfigDiff(inConf) {
     let outData = {}
+    // Active
+    if(inConf.active != activeConfig.active) {
+        outData["active"] = inConf.active;
+    }
     // Contract Address
     if(inConf.contractAddress != activeConfig.contractAddress) {
         outData["contractAddress"] = inConf.contractAddress;
