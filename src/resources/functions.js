@@ -61,6 +61,21 @@ function appendQueryToThisURL(key, value) {
 // }
 
 /**
+ * Capitalizes the first letter of a given string.
+ *
+ * @param {string} str - The input string to capitalize.
+ * @returns {string} The input string with the first letter capitalized.
+ */
+function capitalizeFirstLetter(str) {
+    if (typeof str !== 'string') {
+      return ''; // Return an empty string for non-string inputs
+    }
+  
+    // Capitalize the first letter and concatenate it with the rest of the string
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
  * Sets the active configuration's ID and action based on the provided UUID.
  * @param {string} uuid - The UUID in the format "id-action".
  */

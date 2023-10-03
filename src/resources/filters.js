@@ -14,8 +14,8 @@ function filterActiveRows() {
 
     // Iterate through each row in the table body
     $("#mainTable tbody tr").each(function () {
-        // Check if the 'Active' column (6th column) contains the text 'true'
-        const isActive = $(this).find("td:nth-child(6)").text().trim() === "true";
+        // Check if the 'Active' column (4th column) contains the text 'true'
+        const isActive = $(this).find("td:nth-child(4)").text().trim() === "true";
 
         // Toggle rows based on the current filter state
         if (showActive === null || (showActive && isActive) || (!showActive && !isActive)) {

@@ -60,9 +60,7 @@ function loadConfigs() {
                     text += '<tr id="' + uuid + '">';
                     text += '<td id="' + uuid + '-image"><div class="spinner-grow" role="status" style="width: 48px; height: 48px;"></div></td>';
                     text += '<td id="' + uuid + '-contract"><a href="#" onclick="buildEditView(\'' + uuid + '\');">' + db[i].contractAddress + '</a></td>';
-                    text += '<td id="' + uuid + '-eventType">' + eventType + 's' + '</td>';
-                    text += '<td id="' + uuid + '-disabledDiscord">' + db[i].excludeDiscord + '</td>';
-                    text += '<td id="' + uuid + '-disabledTwitter">' + db[i].excludeTwitter + '</td>';
+                    text += '<td id="' + uuid + '-eventType">' + capitalizeFirstLetter(eventType + 's') + '</td>';
                     text += '<td id="' + uuid + '-active">' + db[i].active + '</td>';
                     text += '</tr>';
                     getCollectionImageByConfigIdAndEventType(db[i].contractAddress, uuid);
