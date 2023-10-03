@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
     <script src="./resources/global.js" charset="utf-8"></script>
     <script src="./resources/functions.js" charset="utf-8"></script>
+    <script src="./resources/filters.js" charset="utf-8"></script>
     <script src="./resources/apis.js" charset="utf-8"></script>
     <script src="./resources/main.js" charset="utf-8"></script>
     <!-- CSS -->
@@ -29,16 +30,18 @@
     <!-- New Item - mainView -->
     <div id="mainView" class="row">
       <div class="col-8 offset-2">
-        <!-- Item page header-->
+        <!-- Item page header -->
         <form class="form-inline">
           <div class="form-group mb-2">
             <h4 class="display-4">Configs</h4>
           </div>
           <div class="form-group mx-sm-3 mb-2">
-            <!--
-              Refresh button
-            -->
+            <!-- Refresh button -->
             <button id="refreshBtn" class="btn btn-primary">↻</button>
+          </div>
+          <!-- Filter button -->
+          <div class="form-group mb-2">
+            <button id="filterButton" class="btn btn-secondary">Showing All</button>
           </div>
         </form>
         <!-- Item page view -->
@@ -56,6 +59,7 @@
                 </tr>
               </thead>
               <tbody id="mainBody">
+                <!-- Table content goes here -->
               </tbody>
             </table>
             <div class="d-flex justify-content-center" style="margin-top: 50px;">
@@ -67,6 +71,7 @@
         </div>
       </div>
     </div>
+    
     <!-- New Item - addConfigView -->
     <div id="addConfigView" class="row">
       <div class="col-8 offset-2">

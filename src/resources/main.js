@@ -1,6 +1,6 @@
 /**
- * Images Platform:
- * Author: Aaron Renner (admin@aaronrenner.com)
+ * Platform main
+ * Author: Aaron Renner (admin@aar.dev)
  */
 
 $(document).ready(function() {
@@ -10,6 +10,7 @@ $(document).ready(function() {
   /** UI interaction */
   let showMainViewBtn = document.querySelector('#showMainViewBtn');
   let refreshBtn = document.querySelector("#refreshBtn");
+  let activeFilterBtn = document.querySelector("#filterButton");
   let showAddViewBtn = document.querySelector('#showAddViewBtn');
 
   /** UI Views */
@@ -30,6 +31,7 @@ $(document).ready(function() {
 
   showMainViewBtn.addEventListener('click', showOverview);
   refreshBtn.addEventListener('click', loadConfigs);
+  activeFilterBtn.addEventListener('click', filterActiveRows);
   showAddViewBtn.addEventListener('click', showAdd);
   formSaveBtn.addEventListener('click', saveNewConfig);
   editBtn.addEventListener('click', showEdit);

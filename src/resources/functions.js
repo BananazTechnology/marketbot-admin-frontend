@@ -1,6 +1,6 @@
 /**
  * Library Functions
- * Author: Aaron Renner (admin@aaronrenner.com)
+ * Author: Aaron Renner (admin@aar.dev)
  */
 
 /**
