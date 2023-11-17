@@ -39,7 +39,8 @@ function saveNewConfig() {
  * Loads configurations by making GET requests to the API.
  * Populates the HTML table with configuration data retrieved from the API.
  */
-function loadConfigs() {
+function loadConfigs(event) {
+    if(event) event.preventDefault();
     $('#loadingView').show();
     mainBody.innerHTML = "";
 

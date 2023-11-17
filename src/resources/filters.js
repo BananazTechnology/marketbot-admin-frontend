@@ -1,8 +1,11 @@
 /**
  * Table Filter Functions
- * Author: Aaron Renner (admin@aar.dev)
+ * Author: Aaron Renner
  */
-function filterActiveRows() {
+function filterActiveRows(event) {
+    event.preventDefault();
+    console.log("Filtering rows...");
+    console.log("show active1: " + showActive);
     // Toggle the filter state for the next click (null -> true -> false -> null)
     if (showActive === null) {
         showActive = true;
@@ -11,6 +14,7 @@ function filterActiveRows() {
     } else {
         showActive = null;
     }
+    console.log("show active2: " + showActive);
 
     // Iterate through each row in the table body
     $("#mainTable tbody tr").each(function () {
